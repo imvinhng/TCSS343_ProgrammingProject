@@ -18,7 +18,9 @@ import java.security.InvalidParameterException;
 public class tcss343 {
 
     public static void main(String[] args) {
-        Driver(10, 1000, true);
+        // increase n until the the runtime is no more than 5 minutes
+        Driver(5, 1000, true);         // test v for true/false
+        Driver(10, 1000000, false);     // test v for true/false
     }
 
     /** Brute Force.
@@ -52,7 +54,7 @@ public class tcss343 {
 
         boolean exist = true;
         int n = S.length;
-        int n2 = (int) n/2;
+        int n2 = n/2;
 
        int[] L = new int[n2];
        int[] H = new int[n2];
@@ -62,15 +64,6 @@ public class tcss343 {
             H[i] = S[i + n2];
         }
 
-        for (int i = 0; i < n2; i++) {
-            System.out.print(L[i] + " ");
-        }
-        System.out.println();
-
-        for (int i = 0; i < n2; i++) {
-            System.out.print(H[i] + " ");
-        }
-        System.out.println();
     }
 
     // Driver (for Testing)
@@ -90,23 +83,59 @@ public class tcss343 {
 
             S[i] = rand;
         }
+
+        for (int order = 1; order <= 3; order++) {
+            // start time
+            long startTime = System.currentTimeMillis();
+
+            // run test for BF -> DP -> CA
+
+            if (order == 1) {
+                BruteForce(S, t);
+            } else if (order == 2) {
+                DynamicProgramming(S, t);
+            } else if (order == 3) {
+                CleverAlgorithm(S, t);
+            }
+
+            // end time
+            long endTime = System.currentTimeMillis();
+
+            // total time taken
+            long duration = endTime - startTime;
+
+            displayDriver(n, r, order, S, duration);
+        }
+
+    }
+
+    private static void displayDriver(int n, int r, int order, int[] S, long duration) {
+        System.out.println("\n");
+
+        System.out.println("Number of element in sequence S: " + n);
+        System.out.println("Max value for elements in sequence S: " + r);
+
+        System.out.print("Sequence S: ");
         for (int i = 0; i < n; i++) {
             System.out.print(S[i] + " ");
         }
         System.out.println();
 
-        // start time
-        long startTime = System.currentTimeMillis();
-        // run test for BF -> DP -> CA
-        BruteForce(S, t);
-        DynamicProgramming(S, t);
-        CleverAlgorithm(S, t);
+        System.out.print("Algorithm implemented: ");
+        switch (order) {
+            case 1:
+                System.out.println("Brute Force");
+                break;
+            case 2:
+                System.out.println("Dynamic Programming");
+                break;
+            case 3:
+                System.out.println("Clever Algorithm");
+                break;
+        }
 
-        // end time
-        long endTime = System.currentTimeMillis();
+        System.out.println("Running Time: " + duration + " ms");
 
-        // total time taken
-        long duration = endTime - startTime;
 
     }
 }
