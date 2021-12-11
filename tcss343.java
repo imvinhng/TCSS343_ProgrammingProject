@@ -1,4 +1,7 @@
-import java.security.InvalidParameterException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -16,6 +19,8 @@ import java.security.InvalidParameterException;
  */
 
 public class tcss343 {
+
+    private static final int MAX_NO_OF_ALGORITHM = 3;
 
     public static void main(String[] args) {
         // increase n until the the runtime is no more than 5 minutes
@@ -46,13 +51,26 @@ public class tcss343 {
      *
      * @param S a list S[0 . . . n − 1] of n positive integers,
      * @param t a target integer t ≥ 0
+     * @return a Map of boolean value (whether the subset is found) and List of subsets found
      */
-    public static void CleverAlgorithm(int[] S, int t) {
-        if (t < 0) {
-            throw new InvalidParameterException("Target t must be >= 0");
-        }
-
+    public static Map<Boolean, List<ArrayList<Integer>>> CleverAlgorithm(int[] S, int t) {
         boolean exist = true;
+        Map<Boolean, List<ArrayList<Integer>>> result = new HashMap<>();
+        List<ArrayList<Integer>> listOfSubsets = new ArrayList<>();
+
+        ArrayList<Integer> subset1 = new ArrayList<>();
+        subset1.add(2);
+        subset1.add(3);
+        listOfSubsets.add(subset1);
+
+        ArrayList<Integer> subset2 = new ArrayList<>();
+
+        subset2.add(1);
+        subset2.add(5);
+        listOfSubsets.add(subset2);
+
+
+
         int n = S.length;
         int n2 = n/2;
 
@@ -63,6 +81,9 @@ public class tcss343 {
             L[i] = S[i];
             H[i] = S[i + n2];
         }
+
+        result.put(exist, listOfSubsets);
+        return result;
 
     }
 
@@ -84,18 +105,19 @@ public class tcss343 {
             S[i] = rand;
         }
 
-        for (int order = 1; order <= 3; order++) {
+        for (int order = 1; order <= MAX_NO_OF_ALGORITHM; order++) {
+            Map<Boolean, List<ArrayList<Integer>>> listOfSubsets = null;
+
             // start time
             long startTime = System.currentTimeMillis();
 
             // run test for BF -> DP -> CA
-
             if (order == 1) {
                 BruteForce(S, t);
             } else if (order == 2) {
                 DynamicProgramming(S, t);
-            } else if (order == 3) {
-                CleverAlgorithm(S, t);
+            } else {
+                listOfSubsets = CleverAlgorithm(S, t);
             }
 
             // end time
@@ -104,12 +126,13 @@ public class tcss343 {
             // total time taken
             long duration = endTime - startTime;
 
-            displayDriver(n, r, order, S, duration);
+            // display the detail report after every algorithm run
+            displayDriver(n, r, order, S, duration, listOfSubsets);
         }
 
     }
 
-    private static void displayDriver(int n, int r, int order, int[] S, long duration) {
+    private static void displayDriver(int n, int r, int order, int[] S, long duration, Map<Boolean,  List<ArrayList<Integer>>> listOfSubsets) {
         System.out.println("\n");
 
         System.out.println("Number of element in sequence S: " + n);
@@ -131,6 +154,13 @@ public class tcss343 {
                 break;
             case 3:
                 System.out.println("Clever Algorithm");
+                if (listOfSubsets.containsKey(false)) {
+                    System.out.println("No Subset Sum was found from the given Sequence");
+                } else {
+                    listOfSubsets.values().forEach(subset  -> System.out.println(subset.stream().toList())
+                    );
+
+                }
                 break;
         }
 
