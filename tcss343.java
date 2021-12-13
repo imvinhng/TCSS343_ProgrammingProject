@@ -30,22 +30,83 @@ public class tcss343 {
      * @param S a list S[0 . . . n − 1] of n positive integers,
      * @param t a target integer t ≥ 0
      */
-    public static  Map<Boolean, List<ArrayList<Integer>>> BruteForce(int[] S, int t) {
+    public static Map<Boolean, ArrayList<Integer>> BruteForce(int[] S, int t) {
 
-        Map<Boolean, List<ArrayList<Integer>>> output = new HashMap<>();
+        Map<Boolean, ArrayList<Integer>> output = new HashMap<>();
+        ArrayList<Integer> listOfSubsets = new ArrayList<>();
+        ArrayList<Integer> mEntries = new ArrayList<>();
+        boolean existSubset = false;
+        final int sum = t;
+
+        // sort the sequence S in ascending order
+        int[] sequenceSorted = S.clone();
+        Arrays.sort(sequenceSorted);
+
+        // recursively calling subset_sum_util until a solution is found/not
+        if(sequenceSorted.length < 1) {
+            existSubset = false;
+        } else if(sequenceSorted.length == 1) {
+            if (sequenceSorted[0] == sum) {
+                existSubset = true;
+            } else {
+                existSubset = false;
+            }
+        } else {
+            output = subset_sum_util(sequenceSorted, 0, t, mEntries);
+            existSubset = output.containsKey(true);
+            mEntries = output.get(existSubset);
+        }
+
+        output.put(existSubset, mEntries);
         return output;
 
     }
+
+    static Map<Boolean, ArrayList<Integer>> subset_sum_util(int list[], int starting_index, int sum, ArrayList<Integer> subset)
+    {
+        Map<Boolean, ArrayList<Integer>> subsetSolution = new HashMap<>();
+
+        if (sum == 0) {
+            subsetSolution.put(true, subset);
+            return subsetSolution;
+        }
+        if (list.length - starting_index == 1) {
+            if (list[starting_index] == sum) {
+                subsetSolution.put(true, subset);
+                return subsetSolution;
+            } else {
+                subsetSolution.put(false, subset);
+                return subsetSolution;
+            }
+        }
+        Map<Boolean, ArrayList<Integer>> result_1 = subset_sum_util(list, starting_index + 1, sum - list[starting_index], subset);
+
+        Map<Boolean, ArrayList<Integer>> result_2 = subset_sum_util(list, starting_index + 1, sum, subset);
+
+        if (result_1.containsKey(true)) {
+            subset = result_1.get(true);
+            subsetSolution.put(true, subset);
+        } else if (result_2.containsKey(true)) {
+            subset = result_2.get(true);
+            subsetSolution.put(true, subset);
+        } else {
+            subsetSolution.put(false, subset);
+        }
+
+
+        return subsetSolution;
+    }
+    
 
     /** Dynamic Programming.
      *
      * @param S a list S[0 . . . n − 1] of n positive integers,
      * @param t a target integer t ≥ 0
      */
-    public static  Map<Boolean, List<ArrayList<Integer>>> DynamicProgramming(int[] S, int t) {
+    public static  Map<Boolean, ArrayList<Integer>> DynamicProgramming(int[] S, int t) {
 
-        Map<Boolean, List<ArrayList<Integer>>> output = new HashMap<>();
-        List<ArrayList<Integer>> listOfSubsets = new ArrayList<>();
+        Map<Boolean, ArrayList<Integer>> output = new HashMap<>();
+        ArrayList<Integer> mEntries = new ArrayList<>();
 
         // sort the sequence S in ascending order
         int[] sequenceSorted = S.clone();
@@ -79,7 +140,7 @@ public class tcss343 {
 
         // if there exist a subset
         if (T[MAX_ROWS][MAX_COLS]) {
-            ArrayList<Integer> mEntries = new ArrayList<>();
+
 
             // Retrieve the subset
             int currCol = MAX_COLS;
@@ -109,12 +170,9 @@ public class tcss343 {
 
                 }
             }
-
-            // Add the correct entries into the subset list
-            listOfSubsets.add(mEntries);
         }
 
-        output.put(T[MAX_ROWS][MAX_COLS], listOfSubsets);
+        output.put(T[MAX_ROWS][MAX_COLS], mEntries);
         return output;
 
     }
@@ -142,13 +200,13 @@ public class tcss343 {
      * @param t a target integer t ≥ 0
      * @return a Map of boolean value (whether the subset is found) and List of subsets found
      */
-    public static Map<Boolean, List<ArrayList<Integer>>> CleverAlgorithm(int[] S, int t) {
+    public static Map<Boolean, ArrayList<Integer>> CleverAlgorithm(int[] S, int t) {
 
         int n = S.length;
         int n2 = (int) Math.floor(n >> 1);
 
-        Map<Boolean, List<ArrayList<Integer>>> output;
-        List<ArrayList<Integer>> listOfSubsets = new ArrayList<>();
+        Map<Boolean, ArrayList<Integer>> output = new HashMap<>();
+        ArrayList<Integer> mEntries = new ArrayList<>();
 
         // Step 1 : Split into 2
         ArrayList<Integer> subset_L = new ArrayList<>();
@@ -166,23 +224,23 @@ public class tcss343 {
 
         // Step 2: Create table T of all subsets of L whose sum does not exceed t
         // if there exist a subset I (in table T) such that sum(I) = t, return TRUE and I, and stop
-        List<ArrayList<Integer>> table_T = new ArrayList<>();
+        ArrayList<Integer> table_T = new ArrayList<>();
         generateTable(table_T, subset_L, t);
 
 //        System.out.println("Table T: " + table_T.stream().toList());
 
-        output = verifyTable(table_T, listOfSubsets, t);
+        output = verifyTable(table_T, mEntries, t);
         if (output.containsKey(true)) { return output; }
 
 
         // Step 3: Create table W of all subsets of H whose sum does not exceed t
         // if there exist a subset J (in table H) such that sum(J) = t, return TRUE and J, and stop
-        List<ArrayList<Integer>> table_W = new ArrayList<>();
+        ArrayList<Integer> table_W = new ArrayList<>();
         generateTable(table_W, subset_H, t);
 
 //        System.out.println("Table W: " + table_W.stream().toList());
 
-        output = verifyTable(table_W, listOfSubsets, t);
+        output = verifyTable(table_W, mEntries, t);
         if (output.containsKey(true)) { return output; }
 
         // Step 4: Sort table W in ascending order
@@ -190,53 +248,55 @@ public class tcss343 {
 //        System.out.println("Sorted Table W: " + table_W.stream().toList());
 
         // Step 5: For each entry I in table T, if I u J such that sum (I u J) = t, return TRUE and (I u J), and stop
-        List<ArrayList<Integer>> table_F = new ArrayList<>();
+        ArrayList<Integer> table_F = new ArrayList<>();
         ArrayList<Integer> mEntry;
 
 
-        for (ArrayList<Integer> entry : table_T) {
-            for (ArrayList<Integer> entry2 : table_W) {
-                if (sumOf2ArrayList(entry, entry2) <= t) {
+        for (Integer entry : table_T) {
+            for (Integer entry2 : table_W) {
+                if (entry + entry2 <= t) {
                     mEntry = new ArrayList<>();
-                    mEntry.addAll(entry);
-                    mEntry.addAll(entry2);
-                    table_F.add(mEntry);
+                    mEntry.add(entry);
+                    mEntry.add(entry2);
                 }
             }
         }
 
-        output = verifyTable(table_F, listOfSubsets, t);
+        output = verifyTable(table_F, mEntries, t);
         if (output.containsKey(true)) {
             return output;
         }
 
         // Step 6: If no subsets I and J yield equality, return FALSE and an empty set, and stop
-        output.put(false, listOfSubsets);
+        output.put(false, mEntries);
         return output;
 
-    }
-
-    private static int sumOf2ArrayList(ArrayList<Integer> entry, ArrayList<Integer> entry2) {
-        return sumOfArrayList(entry) + sumOfArrayList(entry2);
     }
 
     /**\
      * This method finds out whether there exists a subset ,within the given subset list, with sum equals t.
      * @param mTable
-     * @param mSubsetList
      * @param target
      * @return
      */
-    private static Map<Boolean, List<ArrayList<Integer>>> verifyTable(List<ArrayList<Integer>> mTable, List<ArrayList<Integer>> mSubsetList, int target) {
-        Map<Boolean, List<ArrayList<Integer>>> output = new HashMap<>();
+    private static Map<Boolean, ArrayList<Integer>> verifyTable(ArrayList<Integer> mTable, int target) {
+        Map<Boolean, ArrayList<Integer>> output = new HashMap<>();
+        ArrayList<Integer> mEntries = new ArrayList<>();
+        ArrayList<Integer> mSubsetList = new ArrayList<>();
+        int sum = 0;
+
         if (mTable.size() > 0) {
-            for (ArrayList<Integer> entry : mTable) {
-                if (sumOfArrayList(entry) == target) {
+            for (Integer entry : mTable) {
+                if (entry == target) {
                     mSubsetList.add(entry);
 
                     output.put(true, mSubsetList);
                     return output;
-                }
+                } else if (entry < target) {
+                    mEntries.add(entry);
+                    if (sumOfArrayList(mEntries) == target) {
+
+                    }
             }
 
         }
@@ -251,7 +311,7 @@ public class tcss343 {
      * @param mSubset
      * @param target
      */
-    private static void generateTable(List<ArrayList<Integer>> mTable, ArrayList<Integer> mSubset, int target) {
+    private static void generateTable(ArrayList<Integer> mTable, ArrayList<Integer> mSubset, int target) {
         ArrayList<Integer> mEntry = null;
         Stack<Integer> elementStack = new Stack<>();
 
@@ -287,7 +347,7 @@ public class tcss343 {
                 if (sumOfStack(elementStack) <= target) {
                     mEntry = new ArrayList<>();
                     mEntry.addAll(elementStack);
-                    mTable.add(mEntry);
+                    mTable.addAll(mEntry);
 
                 } else {
                     elementStack.pop();
@@ -303,12 +363,12 @@ public class tcss343 {
         }
     }
 
-    private static void sortTableAscendingByWeight(List<ArrayList<Integer>> table) {
+    private static void sortTableAscendingByWeight(ArrayList<Integer> table) {
 
-        table.sort(new Comparator<ArrayList<Integer>>() {
+        table.sort(new Comparator<Integer>() {
             @Override
-            public int compare(ArrayList<Integer> al1, ArrayList<Integer> al2) {
-                return sumOfArrayList(al1) - sumOfArrayList(al2);
+            public int compare(Integer al1, Integer al2) {
+                return al1 - al2;
             }
 
         });
@@ -375,9 +435,8 @@ public class tcss343 {
             t = Arrays.stream(S).sum() + max;
         }
 
-//        for (int order = 1; order <= MAX_NO_OF_ALGORITHM; order++) {
-            for (int order = 2; order <= MAX_NO_OF_ALGORITHM; order++) {
-            Map<Boolean, List<ArrayList<Integer>>> listOfSubsets = null;
+        for (int order = 1; order <= MAX_NO_OF_ALGORITHM; order++) {
+            Map<Boolean, ArrayList<Integer>> listOfSubsets = null;
 
             // start time
             long startTime = System.currentTimeMillis();
@@ -403,7 +462,7 @@ public class tcss343 {
 
     }
 
-    private static void displayDriver(int n, int r, int t,  int order, int[] S, long duration, Map<Boolean,  List<ArrayList<Integer>>> listOfSubsets) {
+    private static void displayDriver(int n, int r, int t,  int order, int[] S, long duration, Map<Boolean,  ArrayList<Integer>> listOfSubsets) {
         System.out.println("\n");
 
         System.out.println("Number of element in sequence S: " + n);
@@ -423,6 +482,7 @@ public class tcss343 {
                 if (listOfSubsets.containsKey(false)) {
                     System.out.println("No Subset Sum was found from the given Sequence");
                 } else {
+                    System.out.println("A subset solution was found!!!");
                     printSubset(listOfSubsets);
 
                 }
@@ -449,9 +509,17 @@ public class tcss343 {
         System.out.println("Running Time: " + duration + " ms");
     }
 
-    private static void printSubset(Map<Boolean, List<ArrayList<Integer>>> listOfSubsets) {
+    /*
+        Helper methods
+     */
+
+    private static void printSubset(Map<Boolean, ArrayList<Integer>> listOfSubsets) {
         System.out.print("Subset found: ");
         listOfSubsets.values().forEach(subset  -> System.out.println(subset.stream().toList()));
+    }
+
+    private static int sumOf2ArrayList(ArrayList<Integer> entry, ArrayList<Integer> entry2) {
+        return sumOfArrayList(entry) + sumOfArrayList(entry2);
     }
 
 
